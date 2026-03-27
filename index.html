@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="description" content="Navi — премиальный магазин бытовой техники и товаров для дома. Быстрая доставка по Украине, удобная корзина, профессиональный сервис.">
+    <title>Navi — Бытовая техника и товары для дома</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+        * {
+            transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, transform, box-shadow;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .hero-bg {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+        }
+
+        .product-card {
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .product-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 35px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal, .drawer {
+            animation: fadeSlideUp 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+        }
+
+        @keyframes fadeSlideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.96);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .cart-drawer, .wishlist-drawer {
+            animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #0ea5e9;
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover:after {
+            width: 100%;
+        }
+
+        .fade-up {
+            animation: fadeUp 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Кастомный скролл для drawer'ов */
+        .overflow-auto::-webkit-scrollbar {
+            width: 5px;
+        }
+        .overflow-auto::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .overflow-auto::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        /* Адаптивные корректировки */
+        @media (max-width: 640px) {
+            .container-padding {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+            .hero-bg .text-5xl {
+                font-size: 2.25rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-white antialiased overflow-x-hidden">
+
+    <!-- NAVBAR -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="py-3 sm:py-4 flex items-center justify-between">
+                <!-- Лого -->
+                <div class="flex items-center gap-x-2 sm:gap-x-3">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 bg-sky-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white text-xl sm:text-2xl shadow-md">
+                        <i class="fa-solid fa-compass"></i>
+                    </div>
+                    <h1 class="font-bold text-2xl sm:text-3xl tracking-tight text-slate-900" style="font-family: 'Space Grotesk', sans-serif;">Navi</h1>
+                </div>
+
+                <!-- Десктоп меню -->
+                <div class="hidden lg:flex items-center gap-x-6 xl:gap-x-8 text-slate-700 font-medium">
+                    <a onclick="navigateToSection('home')" class="nav-link cursor-pointer">Главная</a>
+                    <a onclick="navigateToSection('catalog')" class="nav-link cursor-pointer">Каталог</a>
+                    <a onclick="navigateToSection('categories')" class="nav-link cursor-pointer">Категории</a>
+                    <a onclick="navigateToSection('hits')" class="nav-link cursor-pointer">Хиты продаж</a>
+                    <a onclick="navigateToSection('about')" class="nav-link cursor-pointer">О нас</a>
+                </div>
+
+                <!-- Правая часть -->
+                <div class="flex items-center gap-x-3 sm:gap-x-5">
+                    <!-- Поиск -->
+                    <div onclick="toggleSearch()" class="cursor-pointer group">
+                        <div class="flex items-center bg-slate-100 hover:bg-slate-200 px-3 sm:px-5 h-9 sm:h-11 rounded-3xl text-slate-500 text-xs sm:text-sm font-medium gap-x-2 transition">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span class="hidden sm:block">Поиск</span>
+                        </div>
+                    </div>
+
+                    <!-- Wishlist иконка -->
+                    <button onclick="toggleWishlistDrawer()" class="relative text-slate-700 hover:text-slate-900 text-xl sm:text-2xl flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl hover:bg-slate-100 transition">
+                        <i class="fa-regular fa-heart"></i>
+                        <span id="wishlist-count-badge" class="absolute -top-1 -right-1 text-[10px] bg-rose-500 text-white rounded-full w-5 h-5 flex items-center justify-center font-mono hidden">0</span>
+                    </button>
+
+                    <!-- Корзина -->
+                    <button onclick="toggleCart()" class="relative flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl hover:bg-slate-100 text-slate-700 transition">
+                        <i class="fa-solid fa-shopping-cart text-xl sm:text-2xl"></i>
+                        <span id="cart-count-badge" class="absolute -top-1 -right-1 bg-sky-500 text-white text-xs font-bold rounded-2xl px-1.5 py-px min-w-[20px] flex items-center justify-center shadow">
+                            0
+                        </span>
+                    </button>
+
+                    <!-- Мобильное меню -->
+                    <button onclick="toggleMobileMenu()" class="lg:hidden text-2xl sm:text-3xl text-slate-700 ml-1">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Мобильное меню (выпадающее) -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-t px-5 py-5 text-slate-700 font-medium shadow-lg">
+            <div class="flex flex-col gap-y-4">
+                <a onclick="navigateToSection('home');toggleMobileMenu()" class="flex items-center gap-x-3 py-1"><i class="fa-solid fa-house w-5"></i> Главная</a>
+                <a onclick="navigateToSection('catalog');toggleMobileMenu()" class="flex items-center gap-x-3 py-1"><i class="fa-solid fa-list w-5"></i> Каталог</a>
+                <a onclick="navigateToSection('categories');toggleMobileMenu()" class="flex items-center gap-x-3 py-1"><i class="fa-solid fa-tags w-5"></i> Категории</a>
+                <a onclick="navigateToSection('hits');toggleMobileMenu()" class="flex items-center gap-x-3 py-1"><i class="fa-solid fa-fire w-5"></i> Хиты продаж</a>
+                <a onclick="navigateToSection('about');toggleMobileMenu()" class="flex items-center gap-x-3 py-1"><i class="fa-solid fa-info-circle w-5"></i> О нас</a>
+                <div class="pt-4 border-t text-xs text-slate-400 flex justify-between flex-wrap gap-2">
+                    <div>Доставка по Украине от 2 дней</div>
+                    <div>+380 50 123 45 67</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section id="home" class="hero-bg text-white">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24 xl:py-28">
+            <div class="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                <div class="lg:col-span-7 fade-up">
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tight mb-5 sm:mb-6" style="font-family: 'Space Grotesk', sans-serif;">
+                        Премиум техника<br>для вашего дома
+                    </h1>
+                    <p class="text-base sm:text-lg lg:text-xl text-white/90 max-w-lg mb-6 sm:mb-8 lg:mb-10">
+                        Navi — стильный выбор бытовой техники и товаров для комфорта. 
+                        Более 1000 товаров, гарантия 2 года, доставка за 48 часов.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-3 sm:gap-4">
+                        <button onclick="navigateToSection('catalog')" 
+                                class="group bg-white text-sky-600 hover:bg-amber-300 hover:text-slate-900 px-6 sm:px-8 lg:px-10 h-11 sm:h-12 lg:h-14 rounded-3xl text-base sm:text-lg font-semibold flex items-center gap-x-2 sm:gap-x-3 shadow-xl transition-all duration-300">
+                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition"></i>
+                            Перейти в каталог
+                        </button>
+                        
+                        <div class="flex items-center text-xs sm:text-sm gap-x-4 sm:gap-x-6 lg:gap-x-8 ml-1 sm:ml-2">
+                            <div>
+                                <i class="fa-solid fa-truck text-xl sm:text-2xl"></i>
+                                <div class="text-[11px] sm:text-xs mt-1 opacity-75">Бесплатная доставка<br>от 1500 грн</div>
+                            </div>
+                            <div>
+                                <i class="fa-solid fa-shield-halved text-xl sm:text-2xl"></i>
+                                <div class="text-[11px] sm:text-xs mt-1 opacity-75">Гарантия 24 месяца</div>
+                            </div>
+                            <div>
+                                <i class="fa-solid fa-rotate-left text-xl sm:text-2xl"></i>
+                                <div class="text-[11px] sm:text-xs mt-1 opacity-75">Возврат 30 дней</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2 mt-8 sm:mt-10 lg:mt-12 text-xs sm:text-sm opacity-90">
+                        <div class="flex items-center"><i class="fa-solid fa-check mr-1.5"></i> LiqPay</div>
+                        <div class="flex items-center"><i class="fa-solid fa-check mr-1.5"></i> Монобанк</div>
+                        <div class="flex items-center"><i class="fa-solid fa-check mr-1.5"></i> Новая Почта</div>
+                        <div class="flex items-center"><i class="fa-solid fa-check mr-1.5"></i> Rozetka Pay</div>
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-5 relative fade-up mt-8 lg:mt-0" style="animation-delay: 0.1s;">
+                    <div class="bg-white/10 backdrop-blur-3xl rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-2xl border border-white/30">
+                        <img src="https://picsum.photos/id/1015/800/620" alt="Современная техника" class="rounded-2xl sm:rounded-3xl w-full object-cover shadow-xl">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section id="categories" class="py-12 sm:py-16 lg:py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap justify-between items-end gap-4 mb-8 sm:mb-10 lg:mb-12">
+                <div>
+                    <span class="px-3 sm:px-4 py-1 bg-sky-100 text-sky-600 text-xs sm:text-sm font-semibold rounded-3xl">Категории</span>
+                    <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mt-2 sm:mt-3">Выберите то, что нужно вам</h2>
+                </div>
+                <a onclick="navigateToSection('catalog')" class="text-sky-600 hover:text-sky-700 flex items-center gap-x-2 font-medium text-sm sm:text-base transition">
+                    Все категории <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-5 lg:gap-6">
+                <!-- категории без цифр -->
+                <div onclick="filterByCategory('Авто')" class="group bg-white border border-slate-100 hover:border-sky-200 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 flex flex-col items-center text-center cursor-pointer transition-all duration-300 hover:shadow-lg">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-orange-100 text-orange-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl lg:text-4xl mb-3 sm:mb-4 lg:mb-6 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-car"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm sm:text-base lg:text-xl">Автоаксессуары</h3>
+                </div>
+                <div onclick="filterByCategory('Кухня')" class="group bg-white border border-slate-100 hover:border-sky-200 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 flex flex-col items-center text-center cursor-pointer transition-all duration-300 hover:shadow-lg">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-amber-100 text-amber-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl lg:text-4xl mb-3 sm:mb-4 lg:mb-6 group-hover:scale-110">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm sm:text-base lg:text-xl">Кухня</h3>
+                </div>
+                <div onclick="filterByCategory('Дом')" class="group bg-white border border-slate-100 hover:border-sky-200 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 flex flex-col items-center text-center cursor-pointer transition-all duration-300 hover:shadow-lg">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-teal-100 text-teal-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl lg:text-4xl mb-3 sm:mb-4 lg:mb-6 group-hover:scale-110">
+                        <i class="fa-solid fa-couch"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm sm:text-base lg:text-xl">Для дома</h3>
+                </div>
+                <div onclick="filterByCategory('Питомцы')" class="group bg-white border border-slate-100 hover:border-sky-200 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 flex flex-col items-center text-center cursor-pointer transition-all duration-300 hover:shadow-lg">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-purple-100 text-purple-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl lg:text-4xl mb-3 sm:mb-4 lg:mb-6 group-hover:scale-110">
+                        <i class="fa-solid fa-paw"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm sm:text-base lg:text-xl">Питомцы</h3>
+                </div>
+                <div onclick="filterByCategory('Личное')" class="group bg-white border border-slate-100 hover:border-sky-200 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 flex flex-col items-center text-center cursor-pointer transition-all duration-300 hover:shadow-lg">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-pink-100 text-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl lg:text-4xl mb-3 sm:mb-4 lg:mb-6 group-hover:scale-110">
+                        <i class="fa-solid fa-scissors"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm sm:text-base lg:text-xl">Личные вещи</h3>
+                </div>
+                <div onclick="filterByCategory('Одежда')" class="group bg-white border border-slate-100 hover:border-sky-200 rounded-2xl sm:rounded-3xl p-4 sm:p-5 lg:p-6 flex flex-col items-center text-center cursor-pointer transition-all duration-300 hover:shadow-lg">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-violet-100 text-violet-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-2xl sm:text-3xl lg:text-4xl mb-3 sm:mb-4 lg:mb-6 group-hover:scale-110">
+                        <i class="fa-solid fa-shirt"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm sm:text-base lg:text-xl">Одежда</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HITS (хиты продаж) -->
+    <section id="hits" class="py-12 sm:py-16 lg:py-20 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-6 sm:mb-8 lg:mb-12">Хиты продаж</h2>
+            <div id="hits-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+                <!-- JS заполнит -->
+            </div>
+        </div>
+    </section>
+
+    <!-- CATALOG + FILTERS -->
+    <section id="catalog" class="py-12 sm:py-16 lg:py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row gap-6 lg:gap-10">
+                <!-- Фильтры (адаптивная ширина) -->
+                <div class="lg:w-72 flex-shrink-0">
+                    <div class="sticky top-24">
+                        <div class="bg-slate-50 rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7">
+                            <h3 class="font-semibold mb-5 flex items-center text-base sm:text-lg"><i class="fa-solid fa-sliders mr-2"></i> Фильтры</h3>
+                            <div class="relative mb-6">
+                                <input id="search-input" onkeyup="if(event.keyCode===13) filterProducts()" type="text" placeholder="Поиск по названию..." class="w-full bg-white border border-slate-200 focus:border-sky-300 rounded-3xl px-4 sm:px-5 h-10 sm:h-12 text-sm outline-none transition">
+                                <i onclick="filterProducts()" class="fa-solid fa-magnifying-glass absolute right-4 sm:right-5 top-3 sm:top-4 text-slate-400 cursor-pointer hover:text-sky-500"></i>
+                            </div>
+                            <div class="mb-6">
+                                <div class="text-xs font-medium text-slate-400 mb-2">КАТЕГОРИЯ</div>
+                                <div id="category-filters" class="flex flex-wrap gap-2"></div>
+                            </div>
+                            <div>
+                                <div class="text-xs font-medium text-slate-400 mb-2">ЦЕНА, грн</div>
+                                <div class="flex items-center gap-x-2 sm:gap-x-3">
+                                    <input id="price-min" type="number" value="0" class="bg-white w-1/2 h-10 sm:h-11 border border-slate-200 rounded-2xl px-3 sm:px-4 text-center text-sm">
+                                    <span class="text-slate-400">—</span>
+                                    <input id="price-max" type="number" value="500" class="bg-white w-1/2 h-10 sm:h-11 border border-slate-200 rounded-2xl px-3 sm:px-4 text-center text-sm">
+                                </div>
+                                <button onclick="filterProducts()" class="mt-5 w-full h-10 sm:h-12 bg-slate-900 text-white rounded-3xl text-sm font-semibold hover:bg-slate-800 transition">Применить</button>
+                            </div>
+                            <div onclick="resetFilters()" class="text-xs text-slate-400 hover:text-slate-500 mt-5 flex items-center justify-center cursor-pointer transition">
+                                <i class="fa-solid fa-rotate-right mr-1"></i> Сбросить фильтры
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Продукты -->
+                <div class="flex-1">
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6 sm:mb-8">
+                        <div class="font-medium text-slate-500 text-sm">Найдено <span id="products-count" class="font-semibold text-slate-900">20</span> товаров</div>
+                        <select id="sort-select" onchange="filterProducts()" class="bg-white border border-slate-200 rounded-3xl h-9 sm:h-11 px-4 sm:px-5 text-xs sm:text-sm outline-none focus:border-sky-300">
+                            <option value="default">По умолчанию</option>
+                            <option value="price-asc">Цена: по возрастанию</option>
+                            <option value="price-desc">Цена: по убыванию</option>
+                            <option value="name">По названию</option>
+                        </select>
+                    </div>
+                    <div id="products-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 xl:gap-8"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- О НАС -->
+    <section id="about" class="py-16 sm:py-20 lg:py-24 bg-slate-900 text-white">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 grid md:grid-cols-12 gap-8 lg:gap-12 items-center">
+            <div class="md:col-span-5">
+                <span class="text-sky-400 text-xs sm:text-sm tracking-wide font-medium">ПОЧЕМУ ВЫБИРАЮТ NAVI</span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mt-3 sm:mt-4 tracking-tight">Профессиональный сервис,<br>который вдохновляет</h2>
+                <p class="mt-5 sm:mt-6 lg:mt-8 text-slate-300 text-base sm:text-lg">Navi — это не просто магазин. Мы создали экосистему, где качество, скорость и дизайн работают для вас.</p>
+                <div class="grid grid-cols-2 gap-4 sm:gap-5 lg:gap-6 mt-8 sm:mt-10 lg:mt-12">
+                    <div class="flex gap-x-3 sm:gap-x-4">
+                        <i class="fa-solid fa-box text-3xl sm:text-4xl text-sky-400"></i>
+                        <div><div class="font-semibold text-sm sm:text-base">Быстрая доставка</div><div class="text-slate-400 text-xs sm:text-sm">Новая Почта, Укрпошта</div></div>
+                    </div>
+                    <div class="flex gap-x-3 sm:gap-x-4">
+                        <i class="fa-solid fa-headset text-3xl sm:text-4xl text-sky-400"></i>
+                        <div><div class="font-semibold text-sm sm:text-base">Поддержка 24/7</div><div class="text-slate-400 text-xs sm:text-sm">Чат и телефон</div></div>
+                    </div>
+                    <div class="flex gap-x-3 sm:gap-x-4">
+                        <i class="fa-solid fa-lock text-3xl sm:text-4xl text-sky-400"></i>
+                        <div><div class="font-semibold text-sm sm:text-base">Безопасная оплата</div><div class="text-slate-400 text-xs sm:text-sm">Все популярные методы</div></div>
+                    </div>
+                    <div class="flex gap-x-3 sm:gap-x-4">
+                        <i class="fa-solid fa-star text-3xl sm:text-4xl text-sky-400"></i>
+                        <div><div class="font-semibold text-sm sm:text-base">Высокое качество</div><div class="text-slate-400 text-xs sm:text-sm">Проверенные бренды</div></div>
+                    </div>
+                </div>
+            </div>
+          
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER (без соцсетей и подписки) -->
+    <footer class="bg-slate-900 text-slate-300 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-8 sm:gap-10">
+                <div class="sm:col-span-2 lg:col-span-5">
+                    <div class="flex items-center gap-x-3 text-white mb-4">
+                        <div class="w-8 h-8 sm:w-9 sm:h-9 bg-sky-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-2xl"><i class="fa-solid fa-compass"></i></div>
+                        <span class="font-bold text-2xl sm:text-3xl tracking-tight" style="font-family: 'Space Grotesk', sans-serif;">Navi</span>
+                    </div>
+                    <p class="text-xs sm:text-sm max-w-xs">Профессиональный магазин бытовой техники и товаров для дома. Сделано с любовью к деталям.</p>
+                </div>
+                <div>
+                    <div class="font-semibold text-white mb-4 text-sm sm:text-base">Навигация</div>
+                    <div class="space-y-2 text-xs sm:text-sm">
+                        <div onclick="navigateToSection('catalog')" class="cursor-pointer hover:text-white transition">Каталог</div>
+                        <div onclick="navigateToSection('hits')" class="cursor-pointer hover:text-white transition">Хиты</div>
+                        <div class="cursor-pointer hover:text-white transition">Доставка</div>
+                        <div class="cursor-pointer hover:text-white transition">Оплата</div>
+                    </div>
+                </div> 
+                <div>
+                    <div class="font-semibold text-white mb-4 text-sm sm:text-base">Поддержка</div>
+                    <div class="space-y-2 text-xs sm:text-sm">
+                        <div class="cursor-pointer hover:text-white transition">Контакты</div>
+                        <div class="cursor-pointer hover:text-white transition">FAQ</div>
+                        <div class="cursor-pointer hover:text-white transition">Гарантия</div>
+                        <div class="cursor-pointer hover:text-white transition">Возврат товара</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="font-semibold text-white mb-4 text-sm sm:text-base">Контакты</div>
+                    <div class="space-y-2 text-xs sm:text-sm">
+                        <p><i class="fa-regular fa-envelope mr-2"></i> support@navi.ua</p>
+                        <p><i class="fa-solid fa-phone mr-2"></i> +380 50 123 45 67</p>
+                        <p><i class="fa-regular fa-clock mr-2"></i> Ежедневно 9:00–21:00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center text-[11px] sm:text-xs text-slate-500 border-t border-slate-800 mt-8 sm:mt-10 lg:mt-12 pt-6 sm:pt-8">
+                © 2026 Navi. Все права защищены. Премиальный e‑commerce.
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL ТОВАРА -->
+    <div onclick="if(event.target.id === 'product-modal')hideProductModal()" id="product-modal" class="hidden fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center p-4">
+        <div onclick="event.stopPropagation()" class="modal bg-white max-w-4xl w-full mx-auto rounded-2xl sm:rounded-3xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="flex justify-end p-3 sm:p-4"><button onclick="hideProductModal()" class="text-slate-400 hover:text-slate-900 text-2xl sm:text-3xl"><i class="fa-solid fa-xmark"></i></button></div>
+            <div id="modal-content" class="px-5 sm:px-6 lg:px-8 pb-6 sm:pb-8 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10 overflow-auto"></div>
+        </div>
+    </div>
+
+    <!-- DRAWER КОРЗИНЫ -->
+    <div onclick="if(event.target.id === 'cart-drawer')hideCart()" id="cart-drawer" class="hidden fixed inset-0 bg-black/60 z-[11000] flex justify-end">
+        <div onclick="event.stopPropagation()" class="cart-drawer bg-white w-full max-w-sm sm:max-w-md lg:max-w-lg h-full shadow-2xl flex flex-col">
+            <div class="px-5 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 border-b flex items-center justify-between"><h2 class="text-xl sm:text-2xl font-semibold">Корзина</h2><button onclick="hideCart()" class="text-2xl sm:text-3xl text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
+            <div id="cart-items" class="flex-1 p-5 sm:p-6 lg:p-8 overflow-auto space-y-5 sm:space-y-6"></div>
+            <div class="border-t p-5 sm:p-6 lg:p-8"><div class="flex justify-between text-base sm:text-lg mb-2"><span class="text-slate-500">Итого</span><span id="cart-total" class="font-semibold">0 грн</span></div>
+            <div class="text-[11px] sm:text-xs text-emerald-500 mb-5 sm:mb-6">Бесплатная доставка от 1500 грн</div>
+            <button onclick="checkout()" class="w-full h-11 sm:h-12 lg:h-14 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-3xl text-base sm:text-lg font-semibold">Оформить заказ</button>
+            <button onclick="clearCart()" class="mt-3 sm:mt-4 text-red-400 text-xs sm:text-sm font-medium mx-auto block">Очистить корзину</button></div>
+        </div>
+    </div>
+
+    <!-- DRAWER WISHLIST -->
+    <div onclick="if(event.target.id === 'wishlist-drawer')hideWishlistDrawer()" id="wishlist-drawer" class="hidden fixed inset-0 bg-black/60 z-[11000] flex justify-end">
+        <div onclick="event.stopPropagation()" class="wishlist-drawer bg-white w-full max-w-sm sm:max-w-md lg:max-w-lg h-full shadow-2xl flex flex-col">
+            <div class="px-5 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 border-b flex items-center justify-between"><h2 class="text-xl sm:text-2xl font-semibold"><i class="fa-regular fa-heart text-rose-500 mr-2"></i>Избранное</h2><button onclick="hideWishlistDrawer()" class="text-2xl sm:text-3xl text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
+            <div id="wishlist-items" class="flex-1 p-5 sm:p-6 lg:p-8 overflow-auto space-y-5 sm:space-y-6"></div>
+        </div>
+    </div>
+
+    <script>
+        // ---------- ТОВАРЫ (без рейтингов и отзывов) ----------
+        let PRODUCTS = [
+            { id: 1, name: "Компрессор для машины", price: 280, category: "Авто", description: "Компактный автомобильный компрессор 12В с манометром и LED-подсветкой. Быстрая накачка шин.", image: "https://picsum.photos/id/1015/800/800" },
+            { id: 2, name: "Полка для обуви", price: 320, category: "Дом", description: "Металлическая 5-ярусная полка для обуви с антикоррозийным покрытием. Максимальная нагрузка 80 кг.", image: "https://picsum.photos/id/160/800/800" },
+            { id: 3, name: "Пылесос для машины", price: 450, category: "Авто", description: "Мощный автомобильный пылесос 120 Вт с HEPA-фильтром и насадками.", image: "https://picsum.photos/id/201/800/800" },
+            { id: 4, name: "Лампочка ромашка", price: 180, category: "Дом", description: "Светодиодная LED-лампочка в форме ромашки с тёплым светом.", image: "https://picsum.photos/id/251/800/800" },
+            { id: 5, name: "Сковородка на 6 отделений", price: 430, category: "Кухня", description: "Многосекционная антипригарная сковорода. Готовьте 6 блюд одновременно.", image: "https://picsum.photos/id/292/800/800" },
+            { id: 6, name: "Машинка для голубцов", price: 130, category: "Кухня", description: "Механическая машинка для быстрого формирования голубцов.", image: "https://picsum.photos/id/312/800/800" },
+            { id: 7, name: "Котячий туалет", price: 170, category: "Питомцы", description: "Закрытый лоток с фильтром и лопаткой.", image: "https://picsum.photos/id/1016/800/800" },
+            { id: 8, name: "Набор ножей 6 предметов", price: 320, category: "Кухня", description: "Профессиональный набор ножей из нержавеющей стали.", image: "https://picsum.photos/id/870/800/800" },
+            { id: 9, name: "Полка для микроволновки", price: 280, category: "Дом", description: "Двухъярусная подставка под микроволновку.", image: "https://picsum.photos/id/133/800/800" },
+            { id: 10, name: "Подставка на колёсиках", price: 320, category: "Дом", description: "Мобильная подставка с колёсиками и тормозами.", image: "https://picsum.photos/id/160/800/800" },
+            { id: 11, name: "Подставка для ТВ", price: 180, category: "Дом", description: "Универсальная подставка под ТВ 32–65 дюймов.", image: "https://picsum.photos/id/180/800/800" },
+            { id: 12, name: "Картофелечистка", price: 260, category: "Кухня", description: "Автоматическая электрическая картофелечистка.", image: "https://picsum.photos/id/201/800/800" },
+            { id: 13, name: "Овощерезка", price: 320, category: "Кухня", description: "Многофункциональная овощерезка с 8 насадками.", image: "https://picsum.photos/id/211/800/800" },
+            { id: 14, name: "Машинка для стрижки", price: 220, category: "Личное", description: "Профессиональная машинка для стрижки волос.", image: "https://picsum.photos/id/251/800/800" },
+            { id: 15, name: "Сумка органайзер для машины", price: 150, category: "Авто", description: "Складная сумка-органайзер в багажник.", image: "https://picsum.photos/id/29/800/800" },
+            { id: 16, name: "Детский пистолет", price: 230, category: "Игрушки", description: "Игрушечный водяной пистолет.", image: "https://picsum.photos/id/30/800/800" },
+            { id: 17, name: "Селфи палка", price: 230, category: "Личное", description: "Bluetooth-селфи палка с пультом.", image: "https://picsum.photos/id/310/800/800" },
+            { id: 18, name: "Женский топик (3 шт)", price: 150, category: "Одежда", description: "Набор из 3 стильных топиков.", image: "https://picsum.photos/id/1005/800/800" },
+            { id: 19, name: "Топики в коробке", price: 160, category: "Одежда", description: "Набор хлопковых топиков.", image: "https://picsum.photos/id/1011/800/800" },
+            { id: 20, name: "Друшляк сито", price: 90, category: "Кухня", description: "Металлический друшлак с ручкой.", image: "https://picsum.photos/id/133/800/800" }
+        ];
+        
+        let cart = JSON.parse(localStorage.getItem('navi_cart') || '[]');
+        let wishlist = JSON.parse(localStorage.getItem('navi_wishlist') || '[]');
+        
+        function saveCart() { localStorage.setItem('navi_cart', JSON.stringify(cart)); updateCartCount(); }
+        function saveWishlist() { localStorage.setItem('navi_wishlist', JSON.stringify(wishlist)); updateWishlistCount(); renderWishlistDrawerContent(); }
+        
+        function updateCartCount() { let total = cart.reduce((s,i)=>s+i.qty,0); let badge = document.getElementById('cart-count-badge'); badge.textContent = total; if(total>0) badge.classList.remove('hidden'); else badge.classList.add('hidden'); }
+        function updateWishlistCount() { let count = wishlist.length; let badge = document.getElementById('wishlist-count-badge'); badge.textContent = count; if(count>0) badge.classList.remove('hidden'); else badge.classList.add('hidden'); }
+        
+        function addToCart(productId, qty=1) {
+            let p = PRODUCTS.find(p=>p.id===productId);
+            if(!p) return;
+            let existing = cart.find(i=>i.id===productId);
+            if(existing) existing.qty+=qty;
+            else cart.push({...p, qty});
+            saveCart();
+            showNotification(`${p.name} добавлен в корзину`);
+            if(document.getElementById('cart-drawer').style.display==='flex') renderCart();
+        }
+        
+        function toggleWishlistItem(productId) {
+            if(wishlist.includes(productId)) wishlist = wishlist.filter(id=>id!==productId);
+            else wishlist.push(productId);
+            saveWishlist();
+            renderProducts(filterProductsLogic());
+            renderHits();
+            showNotification(wishlist.includes(productId) ? "Добавлено в избранное" : "Удалено из избранного");
+        }
+       
+        function renderProducts(products) {
+            let grid = document.getElementById('products-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            document.getElementById('products-count').textContent = products.length;
+            if(products.length===0) { grid.innerHTML='<div class="col-span-full py-12 text-center text-slate-400">Товаров не найдено</div>'; return; }
+            products.forEach(p=>{
+                let inWish = wishlist.includes(p.id);
+                grid.innerHTML += `<div class="product-card bg-white border border-slate-100 rounded-2xl sm:rounded-3xl overflow-hidden cursor-pointer group" onclick="showProductModal(${p.id})">
+                    <div class="relative"><img src="${p.image}" alt="${p.name}" class="w-full aspect-square object-cover"><div class="absolute top-2 sm:top-4 right-2 sm:right-4 bg-white px-2 sm:px-3 py-0.5 text-[10px] sm:text-xs font-medium rounded-full shadow">В наличии</div>
+                    <div onclick="event.stopPropagation(); toggleWishlistItem(${p.id});" class="absolute top-2 sm:top-4 left-2 sm:left-4 w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-full sm:rounded-2xl flex items-center justify-center shadow hover:scale-105 transition"><i class="fa-solid fa-heart ${inWish ? 'text-rose-400' : 'text-slate-300'} text-sm sm:text-base"></i></div></div>
+                    <div class="p-3 sm:p-4 lg:p-5"><div class="text-[11px] sm:text-xs text-slate-400 mb-1">${p.category}</div><h4 class="font-semibold text-sm sm:text-base mb-2 group-hover:text-sky-600">${p.name}</h4>
+                    <div class="flex flex-wrap justify-between items-center gap-2"><div><span class="text-xl sm:text-2xl lg:text-3xl font-semibold">${p.price}</span><span class="text-slate-400 text-xs sm:text-sm"> грн</span></div>
+                    <div class="flex gap-1 sm:gap-2"><button onclick="event.stopPropagation(); showProductModal(${p.id});" class="text-sky-600 border border-sky-200 px-3 sm:px-4 py-1 sm:py-1.5 rounded-2xl text-xs sm:text-sm font-medium hover:bg-sky-50">Подробнее</button>
+                    <button onclick="event.stopPropagation(); addToCart(${p.id});" class="bg-sky-500 hover:bg-sky-600 text-white px-3 sm:px-4 py-1 sm:py-1.5 rounded-2xl text-xs sm:text-sm"><i class="fa-solid fa-cart-plus"></i></button></div></div></div></div>`;
+            });
+        }
+        
+        function renderHits() { let hits = [...PRODUCTS].sort((a,b)=>b.price-a.price).slice(0,5); let cont=document.getElementById('hits-grid'); if(!cont) return; cont.innerHTML=''; hits.forEach(p=>{ let inWish=wishlist.includes(p.id); cont.innerHTML+=`<div onclick="showProductModal(${p.id})" class="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 cursor-pointer hover:shadow-xl transition-all"><img src="${p.image}" class="rounded-2xl sm:rounded-3xl aspect-square object-cover mb-3"><div class="text-[11px] sm:text-xs text-slate-400 mb-1">${p.category}</div><p class="font-semibold text-sm sm:text-base">${p.name}</p><div class="flex justify-between items-center mt-2"><span class="text-lg sm:text-xl font-bold">${p.price} грн</span><div onclick="event.stopPropagation(); toggleWishlistItem(${p.id});" class="cursor-pointer"><i class="fa-solid fa-heart ${inWish?'text-rose-400':'text-slate-300'} text-base sm:text-lg"></i></div></div></div>`; }); }
+        
+        function filterProductsLogic() {
+            let filtered = [...PRODUCTS];
+            let search = document.getElementById('search-input')?.value.toLowerCase()||'';
+            if(search) filtered = filtered.filter(p=>p.name.toLowerCase().includes(search));
+            let min = parseFloat(document.getElementById('price-min')?.value)||0;
+            let max = parseFloat(document.getElementById('price-max')?.value)||999999;
+            filtered = filtered.filter(p=>p.price>=min && p.price<=max);
+            let sort = document.getElementById('sort-select')?.value;
+            if(sort==='price-asc') filtered.sort((a,b)=>a.price-b.price);
+            else if(sort==='price-desc') filtered.sort((a,b)=>b.price-a.price);
+            else if(sort==='name') filtered.sort((a,b)=>a.name.localeCompare(b.name));
+            return filtered;
+        }
+        function filterProducts() { renderProducts(filterProductsLogic()); }
+        function resetFilters() { document.getElementById('search-input').value=''; document.getElementById('price-min').value=0; document.getElementById('price-max').value=500; document.getElementById('sort-select').value='default'; filterProducts(); }
+        function filterByCategory(cat) { let filtered = PRODUCTS.filter(p=>p.category===cat); navigateToSection('catalog'); renderProducts(filtered); }
+        
+        function showProductModal(id) { let p = PRODUCTS.find(p=>p.id===id); if(!p) return; let inWish = wishlist.includes(p.id); let modal=document.getElementById('product-modal'); let content=document.getElementById('modal-content'); content.innerHTML=`<div><img src="${p.image}" class="rounded-2xl sm:rounded-3xl w-full shadow"></div><div><div class="inline-block px-3 py-1 text-xs bg-emerald-100 text-emerald-600 rounded-full">${p.category}</div><h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mt-3 sm:mt-4">${p.name}</h1><p class="mt-4 sm:mt-5 text-slate-600 text-sm sm:text-base">${p.description}</p><div class="mt-6 sm:mt-8"><span class="text-3xl sm:text-4xl lg:text-5xl font-bold">${p.price}</span><span class="text-xl sm:text-2xl text-slate-400 ml-1">грн</span></div><div class="flex flex-col sm:flex-row gap-3 sm:gap-5 mt-6 sm:mt-8"><button onclick="addToCart(${p.id}); hideProductModal();" class="flex-1 h-11 sm:h-12 lg:h-14 bg-sky-500 text-white rounded-3xl text-base sm:text-lg font-semibold">В корзину</button><button onclick="toggleWishlistItem(${p.id}); hideProductModal();" class="border border-slate-200 w-11 h-11 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-3xl flex items-center justify-center text-xl sm:text-2xl"><i class="fa-solid fa-heart ${inWish?'text-rose-400':'text-slate-400'}"></i></button></div><div class="text-xs text-slate-400 flex flex-wrap gap-4 sm:gap-6 mt-8"><div><i class="fa-solid fa-truck"></i> Доставка 1-3 дня</div><div><i class="fa-solid fa-shield"></i> Гарантия 24 мес</div></div></div>`; modal.style.display='flex'; }
+        function hideProductModal() { document.getElementById('product-modal').style.display='none'; }
+        
+        function renderCart() { let container=document.getElementById('cart-items'); if(!container) return; if(cart.length===0) container.innerHTML='<div class="text-center text-slate-400 py-8 sm:py-12"><i class="fa-solid fa-cart-shopping text-4xl sm:text-5xl mb-3 sm:mb-4"></i><p>Корзина пуста</p></div>'; else { let html=''; cart.forEach((item,idx)=>{ html+=`<div class="flex gap-3 sm:gap-4"><img src="${item.image}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl object-cover"><div class="flex-1"><div class="flex justify-between"><h5 class="font-medium text-sm sm:text-base">${item.name}</h5><button onclick="removeFromCart(${idx})" class="text-red-300"><i class="fa-solid fa-trash"></i></button></div><p class="text-xs sm:text-sm text-slate-500">${item.price} грн × ${item.qty}</p><div class="flex gap-2 mt-2"><button onclick="changeQty(${idx},-1)" class="w-7 h-7 sm:w-8 sm:h-8 border rounded-xl">-</button><span class="w-7 text-center text-sm">${item.qty}</span><button onclick="changeQty(${idx},1)" class="w-7 h-7 sm:w-8 sm:h-8 border rounded-xl">+</button><div class="ml-auto font-semibold text-sm sm:text-base">${item.price*item.qty} грн</div></div></div></div>`; }); container.innerHTML=html; } let total=cart.reduce((s,i)=>s+i.price*i.qty,0); document.getElementById('cart-total').innerHTML=`${total} грн`; }
+        function changeQty(idx,delta){ let item=cart[idx]; if(!item) return; item.qty=Math.max(1,item.qty+delta); saveCart(); renderCart(); }
+        function removeFromCart(idx){ cart.splice(idx,1); saveCart(); renderCart(); }
+        function clearCart(){ if(confirm('Очистить корзину?')){ cart=[]; saveCart(); renderCart(); } }
+        function toggleCart(){ let drawer=document.getElementById('cart-drawer'); if(drawer.style.display==='flex') drawer.style.display='none'; else { renderCart(); drawer.style.display='flex'; } }
+        function hideCart(){ document.getElementById('cart-drawer').style.display='none'; }
+        function checkout(){ if(cart.length===0) return; hideCart(); alert('✅ Спасибо за заказ! Менеджер свяжется с вами.'); cart=[]; saveCart(); renderCart(); }
+        
+        function renderWishlistDrawerContent(){ let container=document.getElementById('wishlist-items'); if(!container) return; let items=PRODUCTS.filter(p=>wishlist.includes(p.id)); if(items.length===0) container.innerHTML='<div class="text-center text-slate-400 py-8 sm:py-12"><i class="fa-regular fa-heart text-4xl sm:text-5xl mb-3 sm:mb-4"></i><p>Избранное пусто</p></div>'; else { let html=''; items.forEach(p=>{ html+=`<div class="flex gap-3 sm:gap-4 items-center border-b pb-3 sm:pb-4"><img src="${p.image}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl object-cover"><div class="flex-1"><h4 class="font-semibold text-sm sm:text-base">${p.name}</h4><div class="text-sky-600 font-bold text-sm sm:text-base">${p.price} грн</div><div class="flex flex-wrap gap-2 mt-2"><button onclick="addToCart(${p.id}); hideWishlistDrawer();" class="text-xs sm:text-sm bg-sky-100 text-sky-700 px-3 py-1 rounded-full">В корзину</button><button onclick="toggleWishlistItem(${p.id}); renderWishlistDrawerContent();" class="text-xs sm:text-sm text-rose-400"><i class="fa-regular fa-trash-can"></i> Удалить</button></div></div></div>`; }); container.innerHTML=html; } }
+        function toggleWishlistDrawer(){ let drawer=document.getElementById('wishlist-drawer'); if(drawer.style.display==='flex') drawer.style.display='none'; else { renderWishlistDrawerContent(); drawer.style.display='flex'; } }
+        function hideWishlistDrawer(){ document.getElementById('wishlist-drawer').style.display='none'; }
+        
+        function showNotification(msg){ let div=document.createElement('div'); div.className='fixed bottom-5 sm:bottom-6 right-5 sm:right-6 bg-slate-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl z-[99999] flex items-center gap-2 sm:gap-3 text-sm sm:text-base'; div.innerHTML=`<i class="fa-solid fa-circle-check text-emerald-400"></i>${msg}`; document.body.appendChild(div); setTimeout(()=>{ div.style.opacity='0'; setTimeout(()=>div.remove(),300); },2500); }
+        function navigateToSection(section){ document.getElementById(section).scrollIntoView({behavior:'smooth'}); if(!document.getElementById('mobile-menu').classList.contains('hidden')) toggleMobileMenu(); }
+        function toggleMobileMenu(){ document.getElementById('mobile-menu').classList.toggle('hidden'); }
+        function toggleSearch(){ navigateToSection('catalog'); setTimeout(()=>document.getElementById('search-input')?.focus(),300); }
+        
+        function renderCategoryFilters(){ let cats=[...new Set(PRODUCTS.map(p=>p.category))]; let html='<button onclick="resetFilters()" class="text-xs px-4 py-1.5 bg-white border rounded-full hover:bg-slate-100">Все</button>'; cats.forEach(c=>{ html+=`<button onclick="filterByCategory('${c}')" class="text-xs px-4 py-1.5 bg-white border rounded-full hover:bg-slate-100">${c}</button>`; }); document.getElementById('category-filters').innerHTML=html; }
+        
+        function init(){ renderCategoryFilters(); renderProducts(PRODUCTS); renderHits(); updateCartCount(); updateWishlistCount(); }
+        window.onload=init;
+    </script>
+</body>
+</html>
